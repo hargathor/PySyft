@@ -202,7 +202,7 @@ class _SyftTensor:
             if not local_pointer:
                 ptr_id = self.id
             else:
-                ptr_id = random.randint(0, 10e10)
+                ptr_id = int(10e10*random.random())
 
         if hasattr(self, "torch_type") and self.torch_type is not None:
             torch_type = self.torch_type
@@ -517,13 +517,11 @@ class _LocalTensor(_SyftTensor):
 
             return_response = syft_command["self"]
 
-        elif hasattr(response, "child") and (
-            isinstance(response.child, (_SPDZTensor, _SNNTensor, _FixedPrecisionTensor))
-        ):
+        try:
+            assert isinstance(response._child, (_SPDZTensor, _SNNTensor, _FixedPrecisionTensor))
             return response
         # Else, the response if not self. Iterate over the response(s) and wrap with a syft tensor
-        else:
-
+        except (AttributeError, AssertionError):
             responses = response if isinstance(response, tuple) else (response,)
             syft_responses = []
             for resp in responses:
@@ -2508,7 +2506,7 @@ class _TorchTensor(_TorchObject):
             worker = self.owner.get_worker(worker)
 
         if ptr_id is None:
-            ptr_id = random.randint(0, 10e10)
+            ptr_id = int(10e10*random.random())
 
         obj_id = self.child.id
 
@@ -2630,7 +2628,7 @@ class _TorchVariable(_TorchObject):
         (new_id, new_data_id, new_grad_id, new_grad_data_id) = utils.map_tuple(
             None,
             (new_id, new_data_id, new_grad_id, new_grad_data_id),
-            lambda id: id if id is not None else random.randint(0, 10e10),
+            lambda id: id if id is not None else int(10e10*random.random()),
         )
 
         # Store tensorvar ids
